@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 from src.models.subscription import db, Subscription
+from src.utils.email_sender import send_subscription_email, send_renewal_reminder_email
 import requests
 import os
 
@@ -113,8 +114,17 @@ def subscribe():
         db.session.add(subscription)
         db.session.commit()
         
-        # Ici, vous pouvez ajouter l'envoi d'email/WhatsApp/Telegram
-        # avec les informations de connexion
+        # Envoyer l'email avec les informations de connexion
+        send_subscription_email(
+            recipient_email=data['email'],
+            full_name=data['fullName'],
+            plan_name=plan['name'],
+            iptv_credentials={
+                'username': iptv_account['username'],
+                'password': iptv_account['password'],
+                'url': iptv_account['url']
+            }
+        )
         
         return jsonify({
             'success': True,
